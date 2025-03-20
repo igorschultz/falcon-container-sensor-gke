@@ -12,6 +12,7 @@ If you trust on the beauty of automation, you can simply run one of the deployme
 
 ```sh
 chmod +x ./install-container-sensor.sh
+
 ./install-container-sensor.sh -r <falcon-gcr-repo> -u <falcon-client-id> -s <falcon-client-secret>
 ```
 
@@ -32,11 +33,11 @@ gcloud config set project <walkthrough-project-id/>
 
 ## Step 1: Install Falcon Container Sensor
 
-### Set up Falcon Client API Keys
+### Set the client ID and secret to variables by replacing it's values below
 
 ```sh
-export FALCON_CLIENT_ID=<falcon_client_id>
-export FALCON_CLIENT_SECRET=<falcon_client_secret>
+export FALCON_CLIENT_ID=<falcon-client-id>
+export FALCON_CLIENT_SECRET=<falcon-client-secret>
 ```
 
 ### Collect Falcon Container Image Information
