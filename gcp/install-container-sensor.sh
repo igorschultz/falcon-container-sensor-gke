@@ -83,7 +83,7 @@ helm upgrade --install falcon-helm crowdstrike/falcon-sensor -n falcon-system --
   --set node.enabled=false \
   --set container.enabled=true \
   --set falcon.cid="$FALCON_CID" \
-  --set container.image.repository="$FALCON_IMAGE" \
+  --set container.image.repository="$FALCON_IMAGE_REPO" \
   --set container.image.tag="$FALCON_IMAGE_TAG" \
   --set falcon.tags="pov-demo-container"
 
