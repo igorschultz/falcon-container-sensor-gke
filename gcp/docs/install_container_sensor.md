@@ -12,7 +12,9 @@ If you trust on the beauty of automation, you can simply run one of the deployme
 
 ```sh
 chmod +x ./install-container-sensor.sh
+```
 
+```sh
 ./install-container-sensor.sh -r <falcon-gcr-repo> -u <falcon-client-id> -s <falcon-client-secret>
 ```
 
@@ -50,9 +52,16 @@ export FALCON_CID=$( ./falcon-container-sensor-pull.sh -t falcon-container --get
 
 ### Copy falcon container sensor image to a private registry
 
+Export your Falcon Container Sensor repository
+
 ```sh
-export FALCON_IMAGE=$( ./falcon-container-sensor-pull.sh -t falcon-container -c <falcon-gcr-repo> )
-export FALCON_IMAGE_TAG=$( echo $FALCON_IMAGE | cut -d':' -f 2 )
+export FALCON_IMAGE_REPO=<falcon-gcr-repo>
+```
+
+```sh
+export FALCON_PUSH_IMAGE=$(bash <(curl -Ls https://github.com/CrowdStrike/falcon-scripts/releases/latest/download/falcon-container-sensor-pull.sh) -t falcon-container -c $FALCON_IMAGE_REPO )
+export LATESTSENSOR=$(bash <(curl -Ls https://github.com/CrowdStrike/falcon-scripts/releases/latest/download/falcon-container-sensor-pull.sh) -t falcon-container --get-image-path)
+export FALCON_IMAGE_TAG=$(echo $LATESTSENSOR | cut -d':' -f 2)
 ```
 
 ### Deploy Falcon Container Sensor using helm
@@ -63,7 +72,7 @@ helm upgrade --install falcon-helm crowdstrike/falcon-sensor -n falcon-system --
   --set node.enabled=false \
   --set container.enabled=true \
   --set falcon.cid="$FALCON_CID" \
-  --set container.image.repository="$FALCON_IMAGE" \
+  --set container.image.repository="$FALCON_IMAGE_REPO" \
   --set container.image.tag="$FALCON_IMAGE_TAG" \
   --set falcon.tags="pov-demo-container"
 ```
@@ -89,7 +98,7 @@ gcloud iam service-accounts keys create registry-access-key.json --iam-account=f
 ### Grant the service account Artifact Registry permission
 
 ```sh
-gcloud alpha projects add-iam-policy-binding <walkthrough-project-id/> \
+gcloud projects add-iam-policy-binding <walkthrough-project-id/> \
   --member=serviceAccount:falcon-sensor-registry-access@<walkthrough-project-id/>.iam.gserviceaccount.com \
   --role=roles/artifactregistry.reader
 ```

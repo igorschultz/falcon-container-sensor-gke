@@ -73,11 +73,8 @@ export FALCON_CLIENT_ID=$falcon_client_id
 export FALCON_CLIENT_SECRET=$falcon_client_secret
 
 # Copy falcon container image to a private GCR registry
-curl -sSL -o falcon-container-sensor-pull.sh "https://raw.githubusercontent.com/CrowdStrike/falcon-scripts/main/bash/containers/falcon-container-sensor-pull/falcon-container-sensor-pull.sh"
-chmod +x falcon-container-sensor-pull.sh
-
-export FALCON_CID=$( ./falcon-container-sensor-pull.sh -t falcon-container --get-cid )
-export FALCON_IMAGE=$( ./falcon-container-sensor-pull.sh -t falcon-container -c $FALCON_IMAGE_REPO )
+export FALCON_CID=$(bash <(curl -Ls https://github.com/CrowdStrike/falcon-scripts/releases/latest/download/falcon-container-sensor-pull.sh) -t falcon-container --get-cid)
+export FALCON_IMAGE=$(bash <(curl -Ls https://github.com/CrowdStrike/falcon-scripts/releases/latest/download/falcon-container-sensor-pull.sh) -t falcon-container  -c $FALCON_IMAGE_REPO )
 export FALCON_IMAGE_TAG=$( echo $FALCON_IMAGE | cut -d':' -f 2 )
 
 # Deploy Falcon Container Sensor
@@ -92,25 +89,24 @@ helm upgrade --install falcon-helm crowdstrike/falcon-sensor -n falcon-system --
 
 # Create a service account for Falcon Container Sensor
 gcloud iam service-accounts create falcon-sensor-registry-access --description="GCP service account to allow Falcon Container Sensor to access private registries" --display-name="CrowdStrike Sensor Registry Access"
-CROWDSTRIKE_REGISTRY_ACCESS_SA_EMAIL=$(gcloud iam service-accounts list --filter=falcon-sensor-registry-access --format="value(EMAIL)")
 
 # Grant the service account Artifact Registry permissions
-gcloud alpha projects add-iam-policy-binding $GCP_PROJECT_ID \
-  --member=serviceAccount:$CROWDSTRIKE_REGISTRY_ACCESS_SA_EMAIL \
+gcloud projects add-iam-policy-binding $GCP_PROJECT_ID \
+  --member=serviceAccount:falcon-sensor-registry-access@$GCP_PROJECT_ID.iam.gserviceaccount.com \
   --role=roles/artifactregistry.reader
 
 # Create a json key for Falcon Container Sensor SA
 gcloud iam service-accounts keys create registry-access-key.json \
-  --iam-account $CROWDSTRIKE_REGISTRY_ACCESS_SA_EMAIL
+  --iam-account falcon-sensor-registry-access@$GCP_PROJECT_ID.iam.gserviceaccount.com
 
 # Get your GCR registry
-GCR_REGISTRY=$(echo $FALCON_IMAGE | cut -d/ -f1)
+GCR_REGISTRY=$(echo $FALCON_IMAGE_REPO | cut -d/ -f1)
 
 # Create the secret on Falcon Container Sensor namespace
 kubectl create secret docker-registry falcon-registry-secret \
   --docker-server=$GCR_REGISTRY \
   --docker-username=_json_key \
-  --docker-email=$CROWDSTRIKE_REGISTRY_ACCESS_SA_EMAIL \
+  --docker-email=falcon-sensor-registry-access@$GCP_PROJECT_ID.iam.gserviceaccount.com \
   --docker-password="$(cat registry-access-key.json)" \
   --namespace falcon-system
 
