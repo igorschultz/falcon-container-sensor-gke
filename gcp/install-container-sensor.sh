@@ -74,8 +74,9 @@ export FALCON_CLIENT_SECRET=$falcon_client_secret
 
 # Copy falcon container image to a private GCR registry
 export FALCON_CID=$(bash <(curl -Ls https://github.com/CrowdStrike/falcon-scripts/releases/latest/download/falcon-container-sensor-pull.sh) -t falcon-container --get-cid)
-export FALCON_IMAGE=$(bash <(curl -Ls https://github.com/CrowdStrike/falcon-scripts/releases/latest/download/falcon-container-sensor-pull.sh) -t falcon-container  -c $FALCON_IMAGE_REPO )
-export FALCON_IMAGE_TAG=$( echo $FALCON_IMAGE | cut -d':' -f 2 )
+export FALCON_IMAGE=$(bash <(curl -Ls https://github.com/CrowdStrike/falcon-scripts/releases/latest/download/falcon-container-sensor-pull.sh) -t falcon-container -c $FALCON_IMAGE_REPO )
+export LATESTSENSOR=$(bash <(curl -Ls https://github.com/CrowdStrike/falcon-scripts/releases/latest/download/falcon-container-sensor-pull.sh) -t falcon-container --get-image-path)
+export FALCON_IMAGE_TAG=$(echo $LATESTSENSOR | cut -d':' -f 2)
 
 # Deploy Falcon Container Sensor
 helm repo add crowdstrike https://crowdstrike.github.io/falcon-helm --force-update
