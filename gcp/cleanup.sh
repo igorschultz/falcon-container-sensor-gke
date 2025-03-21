@@ -28,6 +28,11 @@ GCP_PROJECT_ID=$(gcloud config list --format 'value(core.project)' 2> /dev/null)
 # Uninstall Falcon Container Sensor
 helm uninstall falcon-helm -n falcon-system
 
+# Grant the service account Artifact Registry permissions
+gcloud projects remove-iam-policy-binding $GCP_PROJECT_ID \
+  --member=serviceAccount:falcon-sensor-registry-access@$GCP_PROJECT_ID.iam.gserviceaccount.com \
+  --role=roles/artifactregistry.reader
+
 # Delete Falcon Container Sensor service account
 gcloud iam service-accounts delete falcon-sensor-registry-access@$GCP_PROJECT_ID.iam.gserviceaccount.com
 
